@@ -4,7 +4,7 @@ Mod for Farming Simulator 22
 ## Description
 In general, lease-to-own refers to methods by which a lease contract provides for the tenant to eventually purchase the property.
 One common lease-to-own strategy is to include an option to purchase provision in the lease.
-This clause states that the tenant may purchase the leased premises during a particular time period and according to terms specified in the lease.
+This clause states that the tenant may purchase the leased premises during a particular time period and according to terms specified in the lease agreement.
 
 This mod enable to purchase leased equipment at the price reduced by the paid leasing installments.
 The residual value of the post-lease vehicle is 22% of the initial value.
@@ -41,7 +41,7 @@ Equipment cost was 100 000 purchase after 2 years. Total operating hours count i
 -  Monthly installments paid (1% x 24) = 24 000
 -  Operating hours paid (2.1% x 10) = 21 000
 -  Leasing agreement is utilized in 2/3rd = 666 to be returned
--  Purchase cost = 54 334
+-  Purchase cost = 54 334
 -  Total = 101 334 (101.33% of store price)
 
 ### Example 3: lease period overdue, operating hours limit exceeded
@@ -54,6 +54,9 @@ Equipment cost was 100 000 purchase after 4 years. Total operating hours count i
 -  Leasing agreement is fully utilized (36+ months)
 -  Purchase cost = 22 000 (residual value)
 -  Total = 135 000 (135% of store price)
+Note that total leasing cost in game is 113 000 which is 113% of initial shop price. Without mod the money is lost - player can either keep paying fees increasing total cost or return vehicle with no refundation whatsoever.
+
+The residual value fixed to 22% of initial price is designed to prevent negative cost vehicles - a situation when purchasing long-overdue leasing adds money to tenant's account.
 
 ### Example 4: purchase immediately after leasing
 

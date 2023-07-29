@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="67">
+<modDesc descVersion="75">
     <author>Bodzio528</author>
-    <version>1.0.0.0</version>
+    <version>1.0.1.0</version>
+	<contributors>Gonimy-Vetrom</contributors>
     <title>
         <en>Lease To Own</en>
         <de>Mietvertrag Mit Kaufklausel</de>
@@ -14,12 +15,16 @@
         <en><![CDATA[
 In general, lease-to-own refers to methods by which a lease contract provides for the tenant to eventually purchase the property.
 One common lease-to-own strategy is to include an option to purchase provision in the lease.
-This clause states that the tenant may purchase the leased premises during a particular time period and according to terms specified in the lease.
-The residual value of the post-lease vehicle is 22% of the initial value.
+This clause states that the tenant may purchase the leased premises during a particular time period and according to terms specified in the lease agreement.
 
-This mod enable to purchase leased equipment at the price reduced by the paid leasing installments. Based on the lease costs in the base game.
+This mod enables to purchase leased equipment at the price reduced by the leasing installments paid to date. Lease rates and fees remain as defined in base game.
 
-Example 1: equipment cost was 100 000 purchase after 3 years. Total operating hours count is 20.
+The purchase fee reduction is limited to 20 hours of operation and 3 years of leasing duration. All installments paid over these limits do not decrease equipment price - base game standard leasing conditions are in effect.
+
+The residual value of the post-lease vehicle is 22% of the initial price. Is designed to prevent negative vehicle's purchase fee - purchasing long-overdue leasing may not add money to tenant's account.
+
+Example 1: target residual value reached (both lease period and operating time fully utilized)
+Equipment cost was 100 000, and owned decides to purchase it after 3 years. Total operating hours count is 20.
 Initial base fee (2%) = 2 000
 Monthly installments paid (1% x 36) = 36 000
 Operating hours paid (2.1% x 20) = 42 000
@@ -27,13 +32,38 @@ Leasing agreement is fully utilized (all 36 months)
 Purchase cost = 22000
 Total cost = 102000 (102% of store price)
 
-Example 2: equipment cost was 100 000 purchase after 2 years. Total operating hours count is 10.
+Example 2: neither operating hours limit nor lease period reached
+Equipment cost was 100 000 purchase happened after 2 years. Total operating hours count is 10.
 Initial base fee (2%) = 2 000
 Monthly installments paid (1% x 24) = 24 000
 Operating hours paid (2.1% x 10) = 21 000
 Leasing agreement is utilized in 2/3rd = 666 to be returned
-Purchase cost = 54 334
+Purchase cost = 54 334
 Total = 101 334 (101.33% of store price)
+
+Example 3: lease period overdue, operating hours limit exceeded
+Equipment cost was 100 000 purchase after 4 years. Total operating hours count is 30.
+Initial base fee (2%) = 2 000
+Monthly installments paid (1% x 48) = 48 000
+Operating hours paid (2.1 x 30) = 63 000
+Leasing agreement is fully utilized (36+ months)
+Purchase cost = 22 000 (residual value)
+Total = 135 000 (135% of store price)
+Note that total leasing cost in game is 113 000 which is 113% of initial shop price. Without mod the money is lost - player can either keep paying fees increasing total cost or return vehicle with no refundation whatsoever.
+
+Example 4: purchase immediately after leasing
+Equipment cost was 200 000 purchase after 0 months. Total operating hours count is 0.
+Initial base fee (2%) = 4 000
+Monthly installments paid (1% x 1) = 2 000
+Operating hours paid (2.1 x 1) = 4 200
+Leasing agreement not utilized at all (4 000 to be returned)
+Purchase cost = 189800
+Total = 200 000 (100% of store price)
+
+Mod does not interact with savegame files. No new savegame is required, and disabling the mod does not break the save.
+
+Changelog:
+1.0.1.0 Added translations
 ]]></en>
         <de><![CDATA[
 Im Allgemeinen bezieht sich Mietkauf auf Methoden, bei denen ein Mietvertrag vorsieht, dass der Mieter die Immobilie schließlich kauft.
@@ -82,11 +112,11 @@ Coût d'achat = 54 334
 Total = 101 334 (101,33% du prix magasin)
 ]]></fr>
         <pl><![CDATA[
-Dzierżawa na własność to klauzula pozwalająca na wykup wynajmowanego sprzętu na warunkach określonych w umowie.
+Opcja nabycia to klauzula pozwalająca na wykup wynajmowanego sprzętu na warunkach określonych w umowie najmu.
+
+Ten mod umożliwia wykupienie wynajmowanego sprzętu po cenie obniżonej o dotychczas zapłacone raty leasingowe. Na podstawie kosztów leasingu w podstawowej wersji gry.
 
 Standardowa umowa obejmuje 3 letni okres leasingu i limit 20 godzin pracy. Wartość rezydualna pojazdu poleasingowego wynosi 22%.
-
-Ten mod umożliwia wykupienie wynajmowanego sprzętu po cenie obniżonej o dotychczas zapłacone raty leasingowe. Na podstawie kosztów leasingu w podstawowej wejrsji gry.
 
 Przykład 1: sprzęt kosztował 100 000 i wykup nastąpił po trzech latach. Pracował w sumie 20 godzin.
 Początkowa opłata (2%) = 2 000
@@ -101,8 +131,33 @@ Początkowa opłata (2%) = 2000
 Zapłacone raty leasingowe (1% x 24) = 24 000
 Zapłacony czas pracy (2.1% x 10) = 21 000
 Wykorzystano 2/3 okresu umowy, 1/3 opłaty początkowej do zwrotu = -666
-Koszt wykupienia = 54 334
+Koszt wykupienia = 54 334
 Całkowity koszt pozyskania sprzętu = 101 334 (101.33% ceny sklepowej)
+
+Przykład 3: sprzęt kosztował 100 000 wykup nastąpił po 4 latach. Pracował w sumie 30 godzin.
+Początkowa opłata (2%) = 2 000
+Zapłacone raty leasingowe (1% x 48) = 48 000
+Zapłacony czas pracy (2.1 x 30) = 63 000
+Wykorzystano cały okres umowy (36+ months)
+Koszt wykupienia = 22 000
+Całkowity koszt pozyskania sprzętu = 135 000 (135% of store price)
+Przy czym koszty operacyjne leasingu wyniosły 113 000, czyli 113% ceny sklepowej. Z modem czy bez suma ta jest bezpowrotnie stracona - gracz może kontynuować płacenie rat powiększając koszt lub zwrócić pojazd bez żadnej refundacji.
+
+Wartość rezydualna została ustalona na 22% ceny sklepowej, aby zapobiec ujemnemu kosztowi wykupu - sytuacji gdy wykup przeterminowanego przedmiotu dodawałby środki na konto posiadacza. Taka sytuacjia nie występuje ani w grze, ani w naturze.
+
+Przykład 4: wykup natychmiast po rozpoczęciu umowy najmu
+sprzęt kosztował 200 000 i został wykupiony od razu po rozpoczęciu leasingu.
+Początkowa opłata (2%) = 4 000
+Zapłacone raty leasingowe (1% x 1) = 2 000
+Zapłacony czas pracy (2.1 x 1) = 4 200
+Nie wykorzystano okresu umowy (4 000 do zwrotu)
+Koszt wykupienia = 189 800
+Total = 200 000 (100% of store price)
+
+Mod nie ingeruje w pliki zapisu. Nie jest wymagany nowy zapis do jego uruchomienia, a wyłączenie go na aktywnym zapisie nie powoduje uszkodzenia.
+
+Changelog:
+1.0.1.0 dodano tłumaczenia
 ]]></pl>
 	<ru><![CDATA[
 В целом, аренда с правом выкупа относится к методам, с помощью которых договор аренды предусматривает, что арендатор в конечном итоге приобретет арендованое.
@@ -131,7 +186,7 @@ Całkowity koszt pozyskania sprzętu = 101 334 (101.33% ceny sklepowej)
 ]]></ru>
 
     </description>
-    <iconFilename>modIcon.dds</iconFilename>
+    <iconFilename>icon_leasetoown.dds</iconFilename>
     <multiplayer supported="true"/>
     <extraSourceFiles>
         <sourceFile filename="LeaseToOwn.lua" />
