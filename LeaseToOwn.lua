@@ -4,50 +4,49 @@
 -- LeaseToOwn.lua
 --
 -- @Author: Bodzio528
--- @Date: 11.07.2022
--- @Version: 1.0.0.0
---
--- Changelog:
--- 	v1.0.0.0 (13.07.2022):
---      - Initial release
 --
 
-LeaseToOwn = {}
-LeaseToOwn.dir = g_currentModDirectory
-LeaseToOwn.modName = g_currentModName
+LeaseToOwn = {
+    MOD_DIRECTORY = g_currentModDirectory or "",
+    MOD_NAME = g_currentModName or "FS22_LeaseToOwn",
+}
 
-LeaseToOwn.LEASE_PERIOD = 36 -- lease agreement duratio in months
-LeaseToOwn.LEASE_USAGE_LIMIT = 20 -- leased equipment working hours limit
-LeaseToOwn.LEASE_WAGE_PER_PERIOD = 0.01 -- 1% monthly fee
-LeaseToOwn.LEASE_WAGE_PER_HOUR = 0.021 -- 2.1% per operating hour fee
-LeaseToOwn.LEASE_INITIAL_FEE = 0.02 -- 2% initial base fee
+-- TODO: search & destroy
+LeaseToOwn.modName = g_currentModName or "FS22_LeaseToOwn"
 
-LeaseToOwn.debug = false -- true --
-LeaseToOwn.info = true -- true --
+LeaseToOwn.LEASE_PERIOD = 36 -- lease agreement duration in months
+LeaseToOwn.LEASE_USAGE_LIMIT = 20 -- lease agreement working hours limit
 
-source(LeaseToOwn.dir .. "LeaseToOwnEvent.lua")
+-- 1% monthly fee
+LeaseToOwn.LEASE_WAGE_PER_PERIOD = EconomyManager.PER_DAY_LEASING_FACTOR
+-- 2.1% per operating hour fee
+LeaseToOwn.LEASE_WAGE_PER_HOUR = EconomyManager.DEFAULT_RUNNING_LEASING_FACTOR
+-- 2% initial base fee
+LeaseToOwn.LEASE_INITIAL_FEE = EconomyManager.DEFAULT_LEASING_DEPOSIT_FACTOR 
+
+source(LeaseToOwn.MOD_DIRECTORY .. "Logger.lua")
+source(LeaseToOwn.MOD_DIRECTORY .. "LeaseToOwnEvent.lua")
+
+local logger = Logger.create(LeaseToOwn.MOD_NAME)
+logger:setLevel(Logger.INFO)
 
 local pageShopItemDetails = g_gui.screenControllers[ShopMenu].pageShopItemDetails
 
 function LeaseToOwn:onShopItemDetailsOpen()
-    if LeaseToOwn.debug then print("LeaseToOwn:onShopItemDetailsOpen pageShopItemDetails") end
+    logger:debug("LeaseToOwn:onShopItemDetailsOpen pageShopItemDetails")
 
     local shopMenu = g_currentMission.shopMenu
     local currentPage = shopMenu.pageShopItemDetails
     local itemsList = currentPage.itemsList
 
     if itemsList ~= nil and itemsList.totalItemCount == 0 then
-        if LeaseToOwn.info then
-            print("LeaseToOwn: page itemList (is nil = "..tostring(itemsList ~= nil)..") is empty. Abort!")
-        end
+        logger.info("LeaseToOwn: page itemList (is nil = "..tostring(itemsList ~= nil)..") is empty. Abort!")
         return
     end
 
     local selectedItemIdx = itemsList.selectedIndex
     if selectedItemIdx < 1 then
-        if LeaseToOwn.info then
-            print("LeaseToOwn: selected item idx "..selectedItemIdx.." is invalid. Abort!")
-        end
+        logger:info("LeaseToOwn: selected item idx "..selectedItemIdx.." is invalid. Abort!")
         return
     end
 	
@@ -69,7 +68,7 @@ function LeaseToOwn:onShopItemDetailsOpen()
 end
 
 function LeaseToOwn:purchase()
-    if LeaseToOwn.debug then print("LeaseToOwn:purchase leasePurchaseElement callback begin") end
+    logger:debug("LeaseToOwn:purchase leasePurchaseElement callback begin")
 
     local shopMenu = g_currentMission.shopMenu
     local currentPage = shopMenu.pageShopItemDetails
@@ -92,7 +91,7 @@ function LeaseToOwn:purchase()
 end
 
 function LeaseToOwn:onConfirm(confirm)
-    if LeaseToOwn.debug then print("LeaseToOwn:onConfirm "..tostring(confirm)) end
+    logger:debug("LeaseToOwn:onConfirm "..tostring(confirm))
 
     if confirm then
         local farm = g_farmManager:getFarmByUserId(g_currentMission.playerUserId)
@@ -109,7 +108,7 @@ end
 pageShopItemDetails.onFrameOpen = Utils.appendedFunction(pageShopItemDetails.onFrameOpen, LeaseToOwn.onShopItemDetailsOpen)
 
 function LeaseToOwn:onShopItemDetailsClose()
-    if LeaseToOwn.debug then print("LeaseToOwn:onShopItemDetailsClose pageShopItemDetails") end
+    logger:debug("LeaseToOwn:onShopItemDetailsClose pageShopItemDetails")
 
     local shopMenu = g_currentMission.shopMenu
 
@@ -133,16 +132,14 @@ function calculateVehicleValue(vehicle) -- put calculated value in confirmation 
     local commission = LeaseToOwn.LEASE_INITIAL_FEE * initialPrice * (1.0 - math.min(1.0, vehicleAge / LeaseToOwn.LEASE_PERIOD))
     local price = math.max(0, initialPrice - installments - usage) - commission
 
-    if LeaseToOwn.debug then
-        print("LeaseToOwn: lease period "..LeaseToOwn.LEASE_PERIOD.." months")
-        print("LeaseToOwn: shop configuration initial price "..initialPrice)
-        print("LeaseToOwn: age "..vehicleAge.." month(s)")
-        print("LeaseToOwn: operating time "..operatingTime.. "h")
-        print("LeaseToOwn: lease installments paid "..installments)
-        print("LeaseToOwn: lease usage paid "..usage)
-        print("LeaseToOwn: lease commission (2%) to return "..commission)
-        print("LeaseToOwn: final purchase price for "..vehicle:getName().." is "..g_i18n:formatMoney(price))
-    end
+    logger:debug("LeaseToOwn: lease period "..LeaseToOwn.LEASE_PERIOD.." months")
+    logger:debug("LeaseToOwn: shop configuration initial price "..initialPrice)
+    logger:debug("LeaseToOwn: age "..vehicleAge.." month(s)")
+    logger:debug("LeaseToOwn: operating time "..operatingTime.. "h")
+    logger:debug("LeaseToOwn: lease installments paid "..installments)
+    logger:debug("LeaseToOwn: lease usage paid "..usage)
+    logger:debug("LeaseToOwn: lease commission to return "..commission)
+    logger:debug("LeaseToOwn: final purchase price for "..vehicle:getName().." is "..g_i18n:formatMoney(price))
 
     return price
 end

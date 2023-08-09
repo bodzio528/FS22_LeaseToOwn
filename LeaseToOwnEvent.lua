@@ -4,26 +4,21 @@
 -- LeaseToOwnEvent.lua
 --
 -- @Author: Bodzio528
--- @Date: 11.07.2022
--- @Version: 1.0.0.0
 --
--- Changelog:
--- 	v1.0.0.0 (13.07.2022):
---      - Initial release
---
+local logger = Logger.create(LeaseToOwn.MOD_NAME)
+logger:setLevel(Logger.INFO)
 
 LeaseToOwnEvent = {}
 local LeaseToOwnEvent_mt = Class(LeaseToOwnEvent, Event)
-
-LeaseToOwnEvent.debug = false -- true --
 
 InitEventClass(LeaseToOwnEvent, "LeaseToOwnEvent")
 
 ---Create instance of Event class
 -- @return table self instance of class event
 function LeaseToOwnEvent.emptyNew()
-    if LeaseToOwnEvent.debug then print("LeaseToOwnEvent:emptyNew") end
     local self = Event.new(LeaseToOwnEvent_mt)
+
+    logger:debug("LeaseToOwnEvent:emptyNew")
 
     return self
 end
@@ -31,7 +26,8 @@ end
 ---Create new instance of event
 -- @param table vehicle vehicle
 function LeaseToOwnEvent.new(vehicle, farmId, price)
-    if LeaseToOwnEvent.debug then print("LeaseToOwnEvent:new") end
+    logger:debug("LeaseToOwnEvent:new")
+
     local self = LeaseToOwnEvent.emptyNew()
     self.vehicle = vehicle
     self.farmId = farmId
@@ -40,7 +36,7 @@ function LeaseToOwnEvent.new(vehicle, farmId, price)
 end
 
 function LeaseToOwnEvent:writeStream(streamId, connection)
-    if LeaseToOwnEvent.debug then print("LeaseToOwnEvent:writeStream") end
+    logger:debug("LeaseToOwnEvent:writeStream")
 
     NetworkUtil.writeNodeObject(streamId, self.vehicle)
 	streamWriteUIntN(streamId, self.farmId, FarmManager.FARM_ID_SEND_NUM_BITS)
@@ -48,7 +44,7 @@ function LeaseToOwnEvent:writeStream(streamId, connection)
 end
 
 function LeaseToOwnEvent:readStream(streamId, connection)
-    if LeaseToOwnEvent.debug then print("LeaseToOwnEvent:readStream") end
+    logger:debug("LeaseToOwnEvent:readStream")
 
     self.vehicle = NetworkUtil.readNodeObject(streamId)
 	self.farmId = streamReadUIntN(streamId, FarmManager.FARM_ID_SEND_NUM_BITS)
@@ -58,10 +54,10 @@ function LeaseToOwnEvent:readStream(streamId, connection)
 end
 
 function LeaseToOwnEvent:run(connection)
-    if LeaseToOwnEvent.debug then print("LeaseToOwnEvent:run") end
+    logger:debug("LeaseToOwnEvent:run")
 
     if not connection:getIsServer() then
-        if LeaseToOwnEvent.debug then print("LeaseToOwnEvent: this is client") end
+        logger:debug("LeaseToOwnEvent: this is client")
 
         if self.vehicle ~= nil and self.vehicle:getIsSynchronized() then
             local player = g_currentMission:getPlayerByConnection(connection)
@@ -72,7 +68,7 @@ function LeaseToOwnEvent:run(connection)
                     if self.price > 0 then
                         local money = g_currentMission:getMoney(self.farmId)
                         if money < self.price then
-                            if LeaseToOwnEvent.debug then print("LeaseToOwnEvent: Not enough money on the farm! Aborting.") end
+                            logger:debug("LeaseToOwnEvent: Not enough money on the farm! Aborting.")
                             return
                         end
                     end
@@ -89,12 +85,12 @@ function LeaseToOwnEvent:run(connection)
                     -- 3. broadcast event so others will know
 					g_server:broadcastEvent(self, true)
                 else
-                    if LeaseToOwnEvent.debug then print("LeaseToOwnEvent: vehicle is NOT leased - abort!") end
+                    logger:debug("LeaseToOwnEvent: vehicle is NOT leased - abort!")
                 end
             end
         end
     else -- this is server
-        if LeaseToOwnEvent.debug then print("LeaseToOwnEvent: this is server") end
+        logger:debug("LeaseToOwnEvent: this is server")
 
         if self.vehicle ~= nil then
             -- 2. change ownership of vehicle
