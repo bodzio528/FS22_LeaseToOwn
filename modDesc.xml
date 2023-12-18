@@ -200,7 +200,7 @@ Changelog:
             <fr>Acheter</fr>
             <pl>Wykup</pl>
             <uk>Викупити</uk>
-            <ru>Выупить</ru>
+            <ru>Выкупить</ru>
         </text>
         <text name="LeaseToOwn_leasePurchaseQuestion">
             <en>Purchase leased %s for %s?</en>
