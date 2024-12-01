@@ -39,15 +39,15 @@ function LeaseToOwnEvent:writeStream(streamId, connection)
     logger:debug("LeaseToOwnEvent:writeStream")
 
     NetworkUtil.writeNodeObject(streamId, self.vehicle)
-	streamWriteUIntN(streamId, self.farmId, FarmManager.FARM_ID_SEND_NUM_BITS)
-	streamWriteInt32(streamId, self.price)
+    streamWriteUIntN(streamId, self.farmId, FarmManager.FARM_ID_SEND_NUM_BITS)
+    streamWriteInt32(streamId, self.price)
 end
 
 function LeaseToOwnEvent:readStream(streamId, connection)
     logger:debug("LeaseToOwnEvent:readStream")
 
     self.vehicle = NetworkUtil.readNodeObject(streamId)
-	self.farmId = streamReadUIntN(streamId, FarmManager.FARM_ID_SEND_NUM_BITS)
+    self.farmId = streamReadUIntN(streamId, FarmManager.FARM_ID_SEND_NUM_BITS)
     self.price = streamReadInt32(streamId)
 
     self:run(connection)
@@ -63,7 +63,7 @@ function LeaseToOwnEvent:run(connection)
             local player = g_currentMission:getPlayerByConnection(connection)
             local farmAllowed = player ~= nil and g_currentMission:getHasPlayerPermission("farmManager", connection, player.farmId)
             if player ~= nil and player.farmId > 0 and farmAllowed then
-                local isLeased = (self.vehicle:getPropertyState() == Vehicle.PROPERTY_STATE_LEASED)
+                local isLeased = (self.vehicle:getPropertyState() == VehiclePropertyState.LEASED)
                 if isLeased and player.farmId == self.vehicle:getOwnerFarmId() then
                     if self.price > 0 then
                         local money = g_currentMission:getMoney(self.farmId)
@@ -78,12 +78,10 @@ function LeaseToOwnEvent:run(connection)
                     g_currentMission:addMoney(-self.price, self.farmId, MoneyType.SHOP_VEHICLE_BUY, true, true)
 
                     -- 2. change ownership of vehicle
-                    self.vehicle.propertyState = Vehicle.PROPERTY_STATE_OWNED
-                    g_currentMission:removeLeasedItem(self.vehicle)
-                    g_currentMission:addOwnedItem(self.vehicle)
+                    setVehicleOwned(self.vehicle)
 
                     -- 3. broadcast event so others will know
-					g_server:broadcastEvent(self, true)
+                    g_server:broadcastEvent(self, true)
                 else
                     logger:debug("LeaseToOwnEvent: vehicle is NOT leased - abort!")
                 end
@@ -93,13 +91,13 @@ function LeaseToOwnEvent:run(connection)
         logger:debug("LeaseToOwnEvent: this is server")
 
         if self.vehicle ~= nil then
-            -- 2. change ownership of vehicle
-            self.vehicle.propertyState = Vehicle.PROPERTY_STATE_OWNED
-            g_currentMission:removeLeasedItem(self.vehicle)
-            g_currentMission:addOwnedItem(self.vehicle)
-
-            -- 4. update shop menu so equipment will be displayed as owned now on
-            g_currentMission.shopMenu:updateGarageItems()
+            setVehicleOwned(self.vehicle)
         end
     end
+end
+
+function setVehicleOwned(vehicle)
+    vehicle.propertyState = VehiclePropertyState.OWNED
+    g_currentMission:removeLeasedItem(vehicle)
+    g_currentMission:addOwnedItem(vehicle)
 end

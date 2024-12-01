@@ -9,20 +9,12 @@
 LeaseToOwn = {
     MOD_DIRECTORY = g_currentModDirectory or "",
     MOD_NAME = g_currentModName or "FS22_LeaseToOwn",
+    LEASE_PERIOD = 36, -- lease agreement duration in months
+    LEASE_USAGE_LIMIT = 20, -- lease agreement working hours limit
+    LEASE_WAGE_PER_PERIOD = EconomyManager.PER_DAY_LEASING_FACTOR, -- 1% monthly fee
+    LEASE_WAGE_PER_HOUR = EconomyManager.DEFAULT_RUNNING_LEASING_FACTOR, -- 2.1% per operating hour fee
+    LEASE_INITIAL_FEE = EconomyManager.DEFAULT_LEASING_DEPOSIT_FACTOR -- 2% initial base fee
 }
-
--- TODO: search & destroy
-LeaseToOwn.modName = g_currentModName or "FS22_LeaseToOwn"
-
-LeaseToOwn.LEASE_PERIOD = 36 -- lease agreement duration in months
-LeaseToOwn.LEASE_USAGE_LIMIT = 20 -- lease agreement working hours limit
-
--- 1% monthly fee
-LeaseToOwn.LEASE_WAGE_PER_PERIOD = EconomyManager.PER_DAY_LEASING_FACTOR
--- 2.1% per operating hour fee
-LeaseToOwn.LEASE_WAGE_PER_HOUR = EconomyManager.DEFAULT_RUNNING_LEASING_FACTOR
--- 2% initial base fee
-LeaseToOwn.LEASE_INITIAL_FEE = EconomyManager.DEFAULT_LEASING_DEPOSIT_FACTOR 
 
 source(LeaseToOwn.MOD_DIRECTORY .. "Logger.lua")
 source(LeaseToOwn.MOD_DIRECTORY .. "LeaseToOwnEvent.lua")
@@ -30,53 +22,50 @@ source(LeaseToOwn.MOD_DIRECTORY .. "LeaseToOwnEvent.lua")
 local logger = Logger.create(LeaseToOwn.MOD_NAME)
 logger:setLevel(Logger.INFO)
 
-local pageShopItemDetails = g_gui.screenControllers[ShopMenu].pageShopItemDetails
+function LeaseToOwn:onFrameOpen()
+    logger:debug("LeaseToOwn:onFrameOpen pageStatistics")
+    
+    local clonedButton = g_inGameMenu.menuButton[1]:clone(self)
 
-function LeaseToOwn:onShopItemDetailsOpen()
-    logger:debug("LeaseToOwn:onShopItemDetailsOpen pageShopItemDetails")
+    clonedButton:setDisabled(true)
+    clonedButton:setText(g_i18n:getText("LeaseToOwn_PURCHASE"))
+    clonedButton:setInputAction("MENU_EXTRA_1")
+    clonedButton.onClickCallback = LeaseToOwn.purchase
 
-    local shopMenu = g_currentMission.shopMenu
-    local currentPage = shopMenu.pageShopItemDetails
-    local itemsList = currentPage.itemsList
+    g_inGameMenu.menuButton[1].parent:addElement(clonedButton)
+    g_inGameMenu.leasePurchase_Button = clonedButton
+end
 
-    if itemsList ~= nil and itemsList.totalItemCount == 0 then
-        logger.info("LeaseToOwn: page itemList (is nil = "..tostring(itemsList ~= nil)..") is empty. Abort!")
-        return
+function LeaseToOwn:onFrameClose()
+    logger:debug("LeaseToOwn:onFrameClose pageStatistics")
+
+    local menuButton = g_inGameMenu.leasePurchase_Button
+
+    if menuButton ~= nil then
+        menuButton:unlinkElement()
+        menuButton:delete()
+        g_inGameMenu.leasePurchase_Button = nil
     end
+end
 
-    local selectedItemIdx = itemsList.selectedIndex
-    if selectedItemIdx < 1 then
-        logger:info("LeaseToOwn: selected item idx "..selectedItemIdx.." is invalid. Abort!")
-        return
+function LeaseToOwn:onIndexChanged(index, count)
+    if g_inGameMenu.leasePurchase_Button ~= nil then
+        local vehicle = g_inGameMenu.vehiclesList.dataSource.vehicles[index].vehicle
+        if vehicle:getPropertyState() == VehiclePropertyState.LEASED then
+            g_inGameMenu.leasePurchase_Button:setDisabled(false)
+        else
+            g_inGameMenu.leasePurchase_Button:setDisabled(true)
+        end
     end
-	
-	local vehicle = itemsList.dataSource.displayItems[selectedItemIdx].concreteItem
-	if vehicle ~= nil then
-		local isPageListOfLeasedVehicles = (vehicle.propertyState == Vehicle.PROPERTY_STATE_LEASED)
-		if isPageListOfLeasedVehicles and shopMenu.leasePurchase_Button == nil then
-			local leasePurchaseElement = shopMenu.menuButton[1]:clone(self)
-			leasePurchaseElement:setText(g_i18n:getText("LeaseToOwn_PURCHASE"))
-			leasePurchaseElement:setInputAction("MENU_EXTRA_1")
-			leasePurchaseElement.onClickCallback = function ()
-				LeaseToOwn.purchase()
-			end
-
-			shopMenu.menuButton[1].parent:addElement(leasePurchaseElement)
-			shopMenu.leasePurchase_Button = leasePurchaseElement
-		end
-	end
 end
 
 function LeaseToOwn:purchase()
     logger:debug("LeaseToOwn:purchase leasePurchaseElement callback begin")
 
-    local shopMenu = g_currentMission.shopMenu
-    local currentPage = shopMenu.pageShopItemDetails
-    local itemsList = currentPage.itemsList
-    local selectedItemIdx = itemsList.selectedIndex
-    local vehicle = itemsList.dataSource.displayItems[selectedItemIdx].concreteItem
-
+    local selectedVehicleIndex = g_inGameMenu.vehiclesList.dataSource.vehicles[g_inGameMenu.vehiclesList.selectedIndex]
+    local vehicle = selectedVehicleIndex.vehicle
     local price = calculateVehicleValue(vehicle)
+
     LeaseToOwn.price = price
     LeaseToOwn.selectedVehicle = vehicle
 
@@ -84,43 +73,31 @@ function LeaseToOwn:purchase()
                                vehicle:getName(),
                                g_i18n:formatMoney(price))
 
-    g_gui:showYesNoDialog({text = text,
-                           title = g_i18n:getText("LeaseToOwn_leasePurchaseQuestionHeader"),
-                           callback = LeaseToOwn.onConfirm,
-                           target = LeaseToOwn})
+    YesNoDialog.show(LeaseToOwn.onConfirm, LeaseToOwn, text)
 end
 
 function LeaseToOwn:onConfirm(confirm)
     logger:debug("LeaseToOwn:onConfirm "..tostring(confirm))
 
     if confirm then
+        g_inGameMenu.leasePurchase_Button:setDisabled(false)
+
         local farm = g_farmManager:getFarmByUserId(g_currentMission.playerUserId)
         if farm ~= nil then
             g_client:getServerConnection():sendEvent(LeaseToOwnEvent.new(LeaseToOwn.selectedVehicle,
                                                                          farm.farmId,
                                                                          LeaseToOwn.price))
+
         end
     end
-
-    g_currentMission.shopMenu:updateGarageItems()
 end
 
-pageShopItemDetails.onFrameOpen = Utils.appendedFunction(pageShopItemDetails.onFrameOpen, LeaseToOwn.onShopItemDetailsOpen)
+g_inGameMenu.vehiclesList:addIndexChangeObserver(LeaseToOwn, LeaseToOwn.onIndexChanged)
 
-function LeaseToOwn:onShopItemDetailsClose()
-    logger:debug("LeaseToOwn:onShopItemDetailsClose pageShopItemDetails")
+local statisticsPage = g_inGameMenu.pageStatistics
 
-    local shopMenu = g_currentMission.shopMenu
-
-    if shopMenu.leasePurchase_Button ~= nil then
-        shopMenu.leasePurchase_Button:unlinkElement()
-        shopMenu.leasePurchase_Button:delete()
-        shopMenu.leasePurchase_Button = nil
-    end
-end
-
-pageShopItemDetails.onFrameClose = Utils.appendedFunction(pageShopItemDetails.onFrameClose, LeaseToOwn.onShopItemDetailsClose)
-
+statisticsPage.onFrameOpen = Utils.appendedFunction(statisticsPage.onFrameOpen, LeaseToOwn.onFrameOpen)
+statisticsPage.onFrameClose = Utils.appendedFunction(statisticsPage.onFrameClose, LeaseToOwn.onFrameClose)
 --------------------------------------------------------------------------------
 
 function calculateVehicleValue(vehicle) -- put calculated value in confirmation dialog

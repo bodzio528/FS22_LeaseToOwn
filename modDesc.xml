@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
-<modDesc descVersion="75">
+<modDesc descVersion="92">
     <author>Bodzio528</author>
-    <version>1.0.1.0</version>
+    <version>1.0.2.0</version>
 	<contributors>Gonimy-Vetrom</contributors>
     <title>
         <en>Lease To Own</en>
@@ -64,6 +64,7 @@ Mod does not interact with savegame files. No new savegame is required, and disa
 
 Changelog:
 1.0.1.0 Added translations
+1.0.2.0 FS25 support
 ]]></en>
         <de><![CDATA[
 Im Allgemeinen bezieht sich Mietkauf auf Methoden, bei denen ein Mietvertrag vorsieht, dass der Mieter die Immobilie schließlich kauft.
@@ -191,6 +192,7 @@ Changelog:
     <extraSourceFiles>
         <sourceFile filename="LeaseToOwn.lua" />
         <sourceFile filename="LeaseToOwnEvent.lua" />
+        <sourceFile filename="Logger.lua" />
     </extraSourceFiles>
 
     <l10n>
@@ -209,14 +211,6 @@ Changelog:
             <pl>Czy chcesz wykupić %s za %s?</pl>
             <uk>Викупити орендований %s за %s?</uk>
             <ru>Выкупить арендованный %s за %s?</ru>
-        </text>
-        <text name="LeaseToOwn_leasePurchaseQuestionHeader">
-            <en>Leased equipment purchase</en>
-            <de>Kauf von geleasten Geräten</de>
-            <fr>Achat de matériel loué</fr>
-            <pl>Wykup leasingowany sprzęt</pl>
-            <uk>Викуп орендованої техніки</uk>
-            <ru>Выкуп арендованной техники</ru>
         </text>
     </l10n>
 
