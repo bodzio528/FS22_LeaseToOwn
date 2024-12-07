@@ -212,6 +212,9 @@ Changelog:
             <uk>Викупити орендований %s за %s?</uk>
             <ru>Выкупить арендованный %s за %s?</ru>
         </text>
+        <text name="LeaseToOwn_leasePurchaseCompleted">
+            <en>You have purchased %s for %s</en>
+        </text>
     </l10n>
 
 </modDesc>

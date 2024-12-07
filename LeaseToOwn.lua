@@ -24,7 +24,7 @@ logger:setLevel(Logger.INFO)
 
 function LeaseToOwn:onFrameOpen()
     logger:debug("LeaseToOwn:onFrameOpen pageStatistics")
-    
+
     local clonedButton = g_inGameMenu.menuButton[1]:clone(self)
 
     clonedButton:setDisabled(true)
@@ -49,6 +49,8 @@ function LeaseToOwn:onFrameClose()
 end
 
 function LeaseToOwn:onIndexChanged(index, count)
+    logger:debug("LeaseToOwn:onIndexChanged vehiclesList")
+
     if g_inGameMenu.leasePurchase_Button ~= nil then
         local vehicle = g_inGameMenu.vehiclesList.dataSource.vehicles[index].vehicle
         if vehicle:getPropertyState() == VehiclePropertyState.LEASED then
@@ -84,10 +86,18 @@ function LeaseToOwn:onConfirm(confirm)
 
         local farm = g_farmManager:getFarmByUserId(g_currentMission.playerUserId)
         if farm ~= nil then
-            g_client:getServerConnection():sendEvent(LeaseToOwnEvent.new(LeaseToOwn.selectedVehicle,
-                                                                         farm.farmId,
-                                                                         LeaseToOwn.price))
+            local vehicle = LeaseToOwn.selectedVehicle
+            local price = LeaseToOwn.price
 
+            g_client:getServerConnection():sendEvent(LeaseToOwnEvent.new(vehicle,
+                                                                         farm.farmId,
+                                                                         price))
+
+            g_inGameMenu:exitMenu()
+
+            InfoDialog.show(string.format(g_i18n:getText("LeaseToOwn_leasePurchaseCompleted"),
+                               vehicle:getName(),
+                               g_i18n:formatMoney(price)))
         end
     end
 end
