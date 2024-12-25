@@ -1,5 +1,5 @@
 --
--- FS22 - LeaseToOwn mod
+-- FS25 - LeaseToOwn mod
 --
 -- LeaseToOwn.lua
 --
@@ -8,7 +8,7 @@
 
 LeaseToOwn = {
     MOD_DIRECTORY = g_currentModDirectory or "",
-    MOD_NAME = g_currentModName or "FS22_LeaseToOwn",
+    MOD_NAME = g_currentModName or "FS25_LeaseToOwn",
     LEASE_PERIOD = 36, -- lease agreement duration in months
     LEASE_USAGE_LIMIT = 20, -- lease agreement working hours limit
     LEASE_WAGE_PER_PERIOD = EconomyManager.PER_DAY_LEASING_FACTOR, -- 1% monthly fee
@@ -28,12 +28,15 @@ function LeaseToOwn:onFrameOpen()
     local clonedButton = g_inGameMenu.menuButton[1]:clone(self)
 
     clonedButton:setDisabled(true)
+    clonedButton:setVisible(g_inGameMenu.pageStatistics.subCategoryPaging.state == 2)
     clonedButton:setText(g_i18n:getText("LeaseToOwn_PURCHASE"))
     clonedButton:setInputAction("MENU_EXTRA_1")
     clonedButton.onClickCallback = LeaseToOwn.purchase
 
     g_inGameMenu.menuButton[1].parent:addElement(clonedButton)
     g_inGameMenu.leasePurchase_Button = clonedButton
+
+    LeaseToOwn:onVehicleListIndexChanged(g_inGameMenu.pageStatistics.vehiclesList.selectedIndex, g_inGameMenu.pageStatistics.vehiclesList.totalItemCount)
 end
 
 function LeaseToOwn:onFrameClose()
@@ -48,8 +51,18 @@ function LeaseToOwn:onFrameClose()
     end
 end
 
-function LeaseToOwn:onIndexChanged(index, count)
-    logger:debug("LeaseToOwn:onIndexChanged vehiclesList")
+function LeaseToOwn:onPageStatisticsTabIndexChanged(index, count)
+    logger:debug("LeaseToOwn:onPageStatisticsTabIndexChanged pageStatistics")
+
+    local menuButton = g_inGameMenu.leasePurchase_Button
+
+    if menuButton ~= nil then
+        menuButton:setVisible(index == 2)
+    end
+end
+
+function LeaseToOwn:onVehicleListIndexChanged(index, count)
+    logger:debug("LeaseToOwn:onVehicleListIndexChanged vehiclesList")
 
     if g_inGameMenu.leasePurchase_Button ~= nil then
         local vehicle = g_inGameMenu.vehiclesList.dataSource.vehicles[index].vehicle
@@ -93,7 +106,7 @@ function LeaseToOwn:onConfirm(confirm)
                                                                          farm.farmId,
                                                                          price))
 
-            g_inGameMenu:exitMenu()
+            g_inGameMenu.pageStatistics:updateVehicles()
 
             InfoDialog.show(string.format(g_i18n:getText("LeaseToOwn_leasePurchaseCompleted"),
                                vehicle:getName(),
@@ -102,7 +115,8 @@ function LeaseToOwn:onConfirm(confirm)
     end
 end
 
-g_inGameMenu.vehiclesList:addIndexChangeObserver(LeaseToOwn, LeaseToOwn.onIndexChanged)
+g_inGameMenu.vehiclesList:addIndexChangeObserver(LeaseToOwn, LeaseToOwn.onVehicleListIndexChanged)
+g_inGameMenu.pageStatistics.subCategoryPaging:addIndexChangeObserver(LeaseToOwn, LeaseToOwn.onPageStatisticsTabIndexChanged)
 
 local statisticsPage = g_inGameMenu.pageStatistics
 
