@@ -2,7 +2,11 @@
 <modDesc descVersion="92">
     <author>Bodzio528</author>
     <version>1.0.2.0</version>
-	<contributors>Gonimy-Vetrom</contributors>
+	<contributors>
+        Gonimy-Vetrom
+        SyBozzDEV
+        ColinM9991
+    </contributors>
     <title>
         <en>Lease To Own</en>
         <de>Mietvertrag Mit Kaufklausel</de>
