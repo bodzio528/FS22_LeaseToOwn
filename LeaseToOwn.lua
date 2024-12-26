@@ -64,7 +64,7 @@ end
 function LeaseToOwn:onVehicleListIndexChanged(index, count)
     logger:debug("LeaseToOwn:onVehicleListIndexChanged vehiclesList")
 
-    if g_inGameMenu.leasePurchase_Button ~= nil then
+    if g_inGameMenu.leasePurchase_Button ~= nil and #g_inGameMenu.vehiclesList.dataSource.vehicles > 0 then
         local vehicle = g_inGameMenu.vehiclesList.dataSource.vehicles[index].vehicle
         if vehicle:getPropertyState() == VehiclePropertyState.LEASED then
             g_inGameMenu.leasePurchase_Button:setDisabled(false)
